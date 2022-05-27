@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	ini "gopkg.in/ini.v1"
+	"github.com/go-ini/ini"
 )
 
 type App struct {
@@ -60,12 +60,13 @@ type Redis struct {
 
 var RedisSetting = &Redis{}
 
-var cfg *ini.File
+var Cfg *ini.File
 
 // Setup initialize the configuration instance
 func Setup() {
 	var err error
-	cfg, err = ini.Load("conf/app.ini")
+
+	Cfg, err = ini.Load("conf/app.ini")
 	if err != nil {
 		log.Fatalf("setting.Setup, fail to parse 'conf/app.ini': %v", err)
 	}
@@ -81,9 +82,9 @@ func Setup() {
 	RedisSetting.IdleTimeout = RedisSetting.IdleTimeout * time.Second
 }
 
-// mapTo map section
+// mapTo 将ini的信息进行映射
 func mapTo(section string, v interface{}) {
-	err := cfg.Section(section).MapTo(v)
+	err := Cfg.Section(section).MapTo(v)
 	if err != nil {
 		log.Fatalf("Cfg.MapTo %s err: %v", section, err)
 	}
