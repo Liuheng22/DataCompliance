@@ -2,7 +2,7 @@ package text
 
 //测试数据
 type Test struct {
-	Data *Rowdata `json:"data"`
+	Data []Rowdata `json:"data"`
 }
 
 //一行数据
@@ -17,7 +17,7 @@ type Rowdata struct {
 
 //测试数据的返回数据
 type Testres struct {
-	Data *Rowres `json:"data"`
+	Data []Rowres `json:"data"`
 }
 
 //测试数据的一行数据
