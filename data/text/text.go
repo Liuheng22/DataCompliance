@@ -33,7 +33,7 @@ type Rowres struct {
 
 //测试数据的问题以及解决方案
 type Problem struct {
-	ID          string      `json:"id"`
+	ID          int         `json:"id"`
 	Col         string      `json:"col"`
 	Seriousness string      `json:"seriousness"`
 	Type        string      `json:"type"`
