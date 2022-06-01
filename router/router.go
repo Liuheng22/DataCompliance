@@ -2,6 +2,7 @@ package router
 
 import (
 	v1 "DataCompliance/router/fix/v1"
+	"DataCompliance/router/upload/v1_upload"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,12 @@ func StartRouter() *gin.Engine {
 			c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "hello world!"})
 		})
 	}
+
+	upload := router.Group("/upload")
+	{
+		upload.POST("/text", v1_upload.UploadText)
+	}
+
 	// 修复功能
 	fix := router.Group("/fix")
 	{
@@ -30,6 +37,7 @@ func StartRouter() *gin.Engine {
 		fix.POST("/name", v1.AddName)
 		//添加地址
 		fix.POST("/address", v1.AddAddress)
+
 	}
 	return router
 }
