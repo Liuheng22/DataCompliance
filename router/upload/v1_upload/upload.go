@@ -53,10 +53,10 @@ func HandleRowdata(row *text.Rowdata, index int) (*text.Rowres, int) {
 	problems = append(problems, HandlePhone(row.Phone, index+len(problems))...)
 
 	// address问题
-	HandleAddress(row.Address, problems)
+	problems = append(problems, HandleAddress(row.Address, index+len(problems))...)
 
 	// id问题
-	HandleId(row.Id, problems)
+	problems = append(problems, HandleId(row.Id, index+len(problems))...)
 
 	// 将问题汇总
 	resrow.Problems = append(resrow.Problems, problems...)
@@ -67,12 +67,13 @@ func HandleRowdata(row *text.Rowdata, index int) (*text.Rowres, int) {
 func HandleName(name string, index int) []text.Problem {
 	// 名字的问题
 	problems := make([]text.Problem, 0)
+	namerune := []rune(name)
 	// 首先名字少于等于一个字，认为名字不完整
-	if len(name) <= 1 {
+	if len(namerune) <= 1 {
 		problems = append(problems, text.Problem{
 			ID:          index + len(problems),
 			Col:         "Name",
-			Seriousness: "caution",
+			Seriousness: "normal",
 			Type:        "完整性",
 			Description: "缺少姓名信息",
 		})
@@ -85,7 +86,6 @@ func HandleName(name string, index int) []text.Problem {
 	if count != 0 {
 		return problems
 	}
-	namerune := []rune(name)
 	// 有错构造新的name
 	newname := make([]rune, 2)
 	newname[0] = namerune[0]
@@ -135,7 +135,6 @@ func HandlePhone(phone string, index int) []text.Problem {
 			Description: "缺少电话信息",
 		})
 		//	电话位数不对，那么不需要考虑后续的东西了
-		index++
 		return problems
 	}
 	// phone的位数
@@ -176,11 +175,94 @@ func HandlePhone(phone string, index int) []text.Problem {
 }
 
 // 处理address问题
-func HandleAddress(address string, problems []text.Problem) {
+func HandleAddress(address string, index int) []text.Problem {
+	// address问题处理
+	problems := make([]text.Problem, 0)
+	addressrune := []rune(address)
+	if len(addressrune) == 0 {
+		problems = append(problems, text.Problem{
+			ID:          index + len(problems),
+			Col:         "Address",
+			Seriousness: "caution",
+			Type:        "完整性",
+			Description: "缺少地址信息",
+		})
+		//	没有地址，就不需要后面的了
+		return problems
+	}
+	if len(addressrune) <= 6 {
+		problems = append(problems, text.Problem{
+			ID:          index + len(problems),
+			Col:         "Address",
+			Seriousness: "caution",
+			Type:        "完整性",
+			Description: "缺少地址信息",
+		})
+		//	没有地址，就不需要后面的了
+		return problems
+	}
 
+	//地址隐私问题
+	cnt := strings.Count(address, "****")
+	pos := strings.Index(address, "****")
+
+	if cnt > 0 && pos == len(addressrune)-4 {
+		return problems
+	}
+	// 隐私上有问题
+	// 生成正确的phone
+	newaddress := string(addressrune[:len(addressrune)-4]) + "****"
+	problems = append(problems, text.Problem{
+		ID:          index + len(problems),
+		Col:         "Address",
+		Seriousness: "critical",
+		Type:        "隐私性",
+		Description: "具体门牌号可能带来风险，建议隐去",
+		Fix:         newaddress,
+	})
+	// 返回
+	return problems
 }
 
 // 处理id问题
-func HandleId(id string, problems []text.Problem) {
+func HandleId(id string, index int) []text.Problem {
+	// 问题
+	problems := make([]text.Problem, 0)
+	// 缺少身份证信息
+	if len(id) == 0 {
+		problems = append(problems, text.Problem{
+			ID:          index + len(problems),
+			Col:         "ID",
+			Seriousness: "risky",
+			Type:        "完整性",
+			Description: "缺少身份证信息",
+		})
+	}
+	// 身份证id位数不对
+	if len(id) != 18 {
+		problems = append(problems, text.Problem{
+			ID:          index + len(problems),
+			Col:         "ID",
+			Seriousness: "caution",
+			Type:        "规范性",
+			Description: "身份证格式与常规格式不符",
+		})
+	}
 
+	// 身份证隐私问题
+	count := strings.Count(id, "********")
+	pos := strings.Index(id, "********")
+	if count > 0 && pos == 6 {
+		return problems
+	}
+	newid := id[0:6] + "********" + id[14:]
+	problems = append(problems, text.Problem{
+		ID:          index + len(problems),
+		Col:         "ID",
+		Seriousness: "critical",
+		Type:        "隐私性",
+		Description: "根据国家法律法规，身份证信息需要隐去",
+		Fix:         newid,
+	})
+	return problems
 }
