@@ -1,6 +1,7 @@
 package router
 
 import (
+	"DataCompliance/pkg/cors"
 	v1 "DataCompliance/router/fix/v1"
 	"DataCompliance/router/upload/v1_upload"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 func StartRouter() *gin.Engine {
 	router := gin.Default()
+	router.Use(cors.Cors())
 	api := router.Group("/api")
 	{
 		api.GET("/me", func(c *gin.Context) {
@@ -20,6 +22,7 @@ func StartRouter() *gin.Engine {
 	upload := router.Group("/upload")
 	{
 		upload.POST("/text", v1_upload.UploadText)
+		upload.Use(cors.Cors())
 	}
 
 	// 修复功能

@@ -20,6 +20,7 @@ func UploadText(c *gin.Context) {
 	}
 	//正确处理
 	resdata := *HandleText(testdata)
+	c.Header("Access-Control-Allow-Origin", "*")
 	c.JSON(e.SUCCESS, gin.H{
 		"message": e.GetMsg(e.SUCCESS),
 		"data":    resdata,
